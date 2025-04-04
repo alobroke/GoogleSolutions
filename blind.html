@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRA - Blind Mode</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2c3e50; 
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        h1 {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 22px;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to IRA - Blind Mode</h1>
+    <p id="quote">"Welcome! Please wait while we set things up."</p>
+
+    <script>
+        let selectedLanguage = "";
+        let userName = ""; 
+
+        let languages = {
+            "english": { code: "en-US", prompt: "What is your name?", congrats: "Congratulations! You have logged in to IRA, " },
+            "hindi": { code: "hi-IN", prompt: "आपका नाम क्या है?", congrats: "बधाई हो! आपने आईआरए में लॉग इन कर लिया है, " },
+            "marathi": { code: "mr-IN", prompt: "तुमचं नाव काय?", congrats: "अभिनंदन! तुम्ही आय आर ए मध्ये लॉग इन केलं आहे, " }
+        };
+
+        let quotes = {
+            "english": ["Your only limit is your mind.", "Believe in yourself.", "Success is the result of hard work."],
+            "hindi": ["आपकी केवल सीमा आपका दिमाग है।", "खुद पर विश्वास रखो।", "सफलता मेहनत का परिणाम है।"],
+            "marathi": ["तुमची एकमेव मर्यादा तुमचा मेंदू आहे.", "स्वतःवर विश्वास ठेवा.", "यश हे कष्टाचे फळ आहे."]
+        };
+
+        function speakText(text, lang, callback = null) {
+            let speech = new SpeechSynthesisUtterance(text);
+            speech.lang = lang;
+            speech.onend = callback;
+            window.speechSynthesis.speak(speech);
+        }
+
+        function selectLanguage() {
+            speakText("Please say Hindi, Marathi, or English.", "en-US");
+
+            let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                let choice = event.results[0][0].transcript.toLowerCase();
+                
+                if (languages[choice]) {
+                    selectedLanguage = choice;
+                    speakText(`You have selected ${choice}.`, "en-US", askName);
+                } else {
+                    speakText("Invalid choice. Please try again.", "en-US", selectLanguage);
+                }
+            };
+        }
+
+        function askName() {
+            let langData = languages[selectedLanguage];
+            speakText(langData.prompt, langData.code);
+
+            let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = langData.code;
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                userName = event.results[0][0].transcript;
+                speakText(`${langData.congrats}${userName}.`, langData.code, startQuotes);
+            };
+        }
+
+        function startQuotes() {
+            let quoteList = quotes[selectedLanguage];
+            let index = 0;
+
+            function readQuote() {
+                if (index < quoteList.length) {
+                    document.getElementById("quote").innerText = `"${quoteList[index]}"`;
+                    speakText(quoteList[index], languages[selectedLanguage].code, () => {
+                        index++;
+                        setTimeout(readQuote, 5000);
+                    });
+                }
+            }
+
+            readQuote();
+        }
+
+        window.onload = function() {
+            setTimeout(selectLanguage, 2000);
+        };
+    </script>
+</body>
+</html>

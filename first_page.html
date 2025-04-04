@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRA - Accessibility Website</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #b0c4de, #87ceeb);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        header {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #2c3e50;
+            color: white;
+        }
+        .menu {
+            cursor: pointer;
+            font-size: 28px;
+            position: absolute;
+            left: 20px;
+        }
+        .logo {
+            font-size: 40px;
+            font-weight: bold;
+            margin: auto;
+        }
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+        }
+        button {
+            width: 120px;
+            height: 120px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 50%;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        #blindBtn { background-color: #ff8c00; color: white; }
+        #deafBtn { background-color: #228b22; color: white; }
+        #quote {
+            font-size: 24px;
+            font-style: italic;
+            margin-top: 20px;
+            color: #2c3e50;
+            font-weight: bold;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="menu">&#x22EE;</div>
+        <div class="logo">IRA</div>
+    </header>
+
+    <p id="quote">"Your abilities are greater than your disabilities."</p>
+
+    <div class="buttons">
+        <button id="blindBtn" onclick="enterBlindMode()">Blind</button>
+        <button id="deafBtn" onclick="enterDeafMode()">Deaf</button>
+    </div>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let welcomeMessage = new SpeechSynthesisUtterance("Welcome to IRA. If you are blind, press 1.");
+        let quotes = [
+            "Your abilities are greater than your disabilities.",
+            "Believe in yourself. You are stronger than you think.",
+            "Every challenge is an opportunity to grow."
+        ];
+        let quoteIndex = 0;
+        let isBlindModeActivated = false;
+
+        function speak(text) {
+            if (synth.speaking) synth.cancel();
+            let speech = new SpeechSynthesisUtterance(text);
+            speech.lang = "en-US";
+            synth.speak(speech);
+        }
+
+        function enterBlindMode() {
+            if (!isBlindModeActivated) {
+                isBlindModeActivated = true;
+                synth.cancel();
+                speak("Congratulations! Welcome to the IRA family.");
+                setTimeout(() => {
+                    window.location.href = "blind.html"; // ✅ Redirect to Blind Page
+                }, 2500);
+            }
+        }
+
+        function enterDeafMode() {
+            window.location.href = "deaf.html"; // ✅ Redirect to Deaf Page
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "1") {
+                enterBlindMode();
+            }
+        });
+
+        function startQuotesLoop() {
+            setTimeout(() => {
+                setInterval(() => {
+                    if (!isBlindModeActivated) {
+                        quoteIndex = (quoteIndex + 1) % quotes.length;
+                        document.getElementById("quote").innerText = quotes[quoteIndex];
+                        speak(quotes[quoteIndex]);
+                    }
+                }, 5000);
+            }, 4000); // Start quotes after welcome message
+        }
+
+        function startAudioFix() {
+            synth.speak(welcomeMessage);
+            setTimeout(startQuotesLoop, 4000);
+        }
+
+        document.addEventListener("click", startAudioFix);
+        document.addEventListener("keydown", startAudioFix);
+
+        window.onload = function() {
+            setTimeout(startAudioFix, 500);
+        };
+    </script>
+</body>
+</html>
